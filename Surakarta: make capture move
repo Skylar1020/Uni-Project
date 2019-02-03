@@ -1,0 +1,469 @@
+from reference import get_board_state, get_board_string
+    
+'''
+This function is designed to check the input of board_str, start and end are
+working. It will check the input is empty or not; length of board_str is square 
+number or not; the start and end is same intersection or both pieces from one
+side. This function will contain 9 inputs. board_string is the board pieces 
+shows in string, start and end are point in turple, start_x, start_y, end_x, 
+end_y are start and end coordinates, length is the maxinum index in the board.
+'''
+def check_input(board_string, start, end, board, 
+                start_x, start_y, end_x, end_y, length):
+        
+    # Test the start and end are vaild, otherwise return None 
+    if start == () or end == ():
+        return False
+    
+    # Test there are pieces on both intersection, otherwise return None
+    elif board[end_x][end_y] == "." or board[start_x][start_y] == ".":
+        return False
+    
+    # Test the start and end input is zero or position int
+    elif start_x < 0 or start_y < 0 or end_x < 0 or end_y < 0:
+        return False
+    
+    # Test the start and end point exceed the board or not
+    elif (start_x > length or start_y > length or 
+          end_x > length or end_y > length):
+        return False
+    
+    # Test start intersection is not end intersection, otherwise return None
+    elif board[end_x][end_y] == board[start_x][start_y]:
+        return False
+    
+    else:
+        return True
+
+
+''' 
+Because the intersections at board corner are not on the circle line. 
+Therefore if the end point at corner point, the capture will not working.
+Then this function will check the end point is corner point or not.
+The corner point has a features is both x and y coordinates are minimum index 
+or maximum index. 
+This function will contain 5 inputs. start and end are point in turple, start_x 
+start_y, end_x, end_y are start and end coordinates, 
+length is the maxinum index in the board.
+'''
+def corner_point(length, end_x, end_y, start_x, start_y):
+    
+    # Test end point
+    if (end_x == 0 or end_x == length) and (end_y == 0 or end_y == length):
+        
+        return False
+    
+    # Test start point
+    elif ((start_x == 0 or start_x == length) and 
+          (start_y == 0 or start_y == length)):
+        
+        return False
+    
+    else:
+        
+        return True
+
+    
+''' 
+When the piece move to the board edge, it will rotate via the circle to the
+other board edge and continue move. This function is to true the piece to 
+another board edge intersection. This function will contain 3 inputs. x is the
+x-coordinate of the board edge point, y is the y-coordinate of the board edge 
+point, length is the maxinum index in the board.
+'''
+def rotate_point(x, y, length):
+    
+    # Set the rotate as golbal varible
+    global rotate
+    
+    # half_length is to define different sitution of board edge intersection
+    half_length = 0.5 * length
+    
+    # x is board edge intersection x, and y is board edge intersection y
+    if x == 0 or y == 0:
+        
+        if y <= half_length and y != 0:
+            rotate = (y, x)
+        elif x <= half_length and x != 0:
+            rotate = (y, x)
+        elif y >= half_length: 
+            rotate = (length - y, length)
+        elif x >= half_length:
+            rotate = (length, length - x)
+        return rotate
+    
+    elif y == length or x == length:
+        
+        if x >= half_length and x != length:
+            rotate = (y, x)
+        elif y >= half_length and y != length:
+            rotate = (y, x)
+        elif x <= half_length:
+            rotate = (0, length - x)
+        elif y <= half_length:
+            rotate = (length - y, 0)
+     
+        return rotate
+
+    
+'''
+The function will get the intersections that from start point to board edge 
+through a horizontal line and rotate by circle. It will return two varible, 
+one is a list of path intersection, and the other one is rotated intersection.
+This function will contain 3 inputs. start_x, start_y are the start coordinates
+length is the maxinum index in the board.
+'''
+def horizontal(start_x, start_y, length):
+    
+    # Use a empty list to record every step the piece pass named path
+    path = []
+    
+    # This function doesn't consider left board edge situton
+    if start_x == length:
+        pass
+    
+    # The start point will not be contained
+    for x in range(start_x + 1, length + 1): 
+        path.append((x, start_y))
+  
+    rotate = rotate_point(x, start_y, length)
+    
+    return path, rotate
+
+
+'''
+The function will get the intersections that from start point to board edge 
+through a vertical line and rotate by circle. It will return two varible, 
+one is a list of path intersection, and the other one is rotated intersection.
+This function will contain 3 inputs. start_x, start_y are start coordinates, 
+length is the maxinum index in the board.
+'''
+def vertical(start_x, start_y, length):
+    
+    # Use an empty list to record every step the piece pass named path
+    path = []
+    
+    # This function doesn't consider start point at bottom board edge sitution
+    if start_y == length:
+        pass
+    
+    # Start point will not be contained
+    for y in range(start_y + 1, length + 1):
+        path.append((start_x, y))
+
+    rotate = rotate_point(start_x, y, length)
+
+    return path, rotate
+
+
+'''
+When the piece move around the circle already, it will occur on a board-edge
+point. This function will return a list that content all intersections on the
+line.
+This function will contain 3 inputs. x is the rotate point x-coordinate, 
+y is the rotate point y-coordinate, length is the maxinum index in the board.
+'''
+def get_line(x, y, length):
+    
+    # Set an empty list line to record all intersections named line
+    line = []
+    
+    # When piece rotates to left board edge
+    if x == 0:
+        
+        for i in range(length + 1):
+            line.append((i, y))
+    
+    # When piece rotates to top board edge
+    elif y == 0:
+        
+        for i in range(length + 1):
+            line.append((x, i))
+    
+    # When the piece rotates to right board edge
+    elif x == length:
+        
+        for i in range(length, -1, -1):
+            line.append((i, y))
+    
+    # When the piece rotates to bottom board edge
+    elif y == length:
+        
+        for i in range(length, -1, -1):
+            line.append((x, i))  
+            
+    return line
+
+
+'''
+This function will follow the piece path and get a list of all intersection on
+the piece's track.
+This function will contain 5 inputs. start_x, start_y, end_x, end_y are start 
+and end coordinates, length is the maxinum index in the board.
+'''
+def get_path(start_x, start_y, end_x, end_y, length):
+    
+    # Start from horizontal move pathway
+    pathway = []
+    
+    # Start from vertical move pathway
+    pathway_3 = []
+    
+    # Consider about when start point at left board edge
+    if start_x == 0:
+        
+        pathway += horizontal(start_x, start_y, length)[0]
+        
+        # rotate_1 is rotate the board edge point once
+        rotate_1 = horizontal(start_x, start_y, length)[1]
+        pathway += get_line(rotate_1[0], rotate_1[1], length)
+        
+        # rotate_2 is rotate the board edge point again
+        rotate_2 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_2[0], rotate_2[1], length)
+        
+        # rotate_3 is rotate the board edge point again
+        rotate_3 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_3[0], rotate_3[1], length)
+        
+        # pathway_2 is the anti-direction path of pathway
+        pathway_2 = pathway[::-1]
+        
+        return [pathway, pathway_2]
+    
+    # Consider about when start point at top board edge
+    elif start_y == 0:
+        
+        pathway += vertical(start_x, start_y, length)[0]
+        
+        # rotate the board edge point once
+        rotate_1 = vertical(start_x, start_y, length)[1]
+        pathway += get_line(rotate_1[0], rotate_1[1], length)
+        
+        # rotate the board edge point again
+        rotate_2 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_2[0], rotate_2[1], length)
+        
+        # rotate the board edge point again
+        rotate_3 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_3[0], rotate_3[1], length)
+        
+        # pathway_2 is the anti-direction path of pathway
+        pathway_2 = pathway[::-1]
+        
+        return [pathway, pathway_2]
+    
+    # Consider about when start point at right board edge
+    elif start_x == length:
+        
+        # rotate_1 is rotate the start point 
+        rotate_1 = rotate_point(start_x, start_y, length)
+        pathway += get_line(rotate_1[0], rotate_1[1], length)
+        
+        # rotate_2 is rotate the board edge point again
+        rotate_2 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_2[0], rotate_2[1], length)
+        
+        # rotate_3 is rotate the board edge point again
+        rotate_3 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_3[0], rotate_3[1], length)
+        
+        # point_4 is rotate the board edge point again
+        rotate_4 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        
+        # The last point will not be contained
+        for i in range(length-1):
+            pathway.append((i, rotate_4[1]))
+        
+        # pathway_2 is the anti-direction path of pathway
+        pathway_2 = pathway[::-1]
+        
+        return [pathway, pathway_2]
+    
+    # Consider about when start point at bottom board edge
+    elif start_y == length:
+        
+        # rotate_1 is rotate the start point
+        rotate_1 = rotate_point(start_x, start_y, length)
+        pathway += get_line(rotate_1[0], rotate_1[1], length)
+        
+        # rotate_2 is rotate the board edge point again
+        rotate_2 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_2[0], rotate_2[1], length)
+        
+        # rotate_3 is rotate the board edge point again
+        rotate_3 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_3[0], rotate_3[1], length)
+        
+        # rotate_4 is rotate the board edge point again
+        rotate_4 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        
+        # The last point will not be contained
+        for i in range(length-1):
+            pathway.append((rotate_4[0], i))
+        
+        # pathway_2 is the anti-direction path of pathway
+        pathway_2 = pathway[::-1]
+        
+        return [pathway, pathway_2]
+    
+    # Consider about when start point not at the board edge
+    else:
+        
+        # Get the pathway through horizontal way firstly
+        pathway += horizontal(start_x, start_y, length)[0]
+        
+        # rotate_1 is rotate the board edge point once
+        rotate_1 = horizontal(start_x, start_y, length)[1]
+        pathway += get_line(rotate_1[0], rotate_1[1], length)
+        
+        # rotate_2 is rotate the board edge point again
+        rotate_2 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_2[0], rotate_2[1], length)
+        
+        # rotate_3 is rotate the board edge point again
+        rotate_3 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        pathway += get_line(rotate_3[0], rotate_3[1], length)
+        
+        # rotate_4 is rotate the board edge point again
+        rotate_4 = rotate_point(pathway[-1][0], pathway[-1][1], length)
+        
+        # start point will not be contained in the list
+        for i in range(rotate_4[0], end_x):
+            pathway.append((i, rotate_4[1]))
+        
+        # pathway_2 is the anti-direction path of pathway
+        pathway_2 = pathway[::-1]
+        
+        # Get the pathway through vertical direction firstly
+        pathway_3 += vertical(start_x, start_y, length)[0]
+        
+        # rotate_1 is rotate the board edge point once
+        rotate_1 = vertical(start_x, start_y, length)[1]
+        pathway_3 += get_line(rotate_1[0], rotate_1[1], length)
+        
+        # rotate_2 is rotate the board edge point again
+        rotate_2 = rotate_point(pathway_3[-1][0], pathway_3[-1][1], length)
+        pathway_3 += get_line(rotate_2[0], rotate_2[1], length)
+        
+        # rotate_3 is rotate the board edge point again
+        rotate_3 = rotate_point(pathway_3[-1][0], pathway_3[-1][1], length)
+        pathway_3 += get_line(rotate_3[0], rotate_3[1], length)
+        
+        # rotate_4 is rotate the board edge point again
+        rotate_4 = rotate_point(pathway_3[-1][0], pathway_3[-1][1], length)
+        
+        # Start point will not be contained in the list
+        for i in range(rotate_4[1], start_y):
+            pathway_3.append((rotate_4[0], i))
+        
+        # pathway_4 is the anti-direction path of the pathway_3
+        pathway_4 = pathway_3[::-1]
+        
+        return [pathway, pathway_2, pathway_3, pathway_4]
+  
+
+'''
+This function will check the vaildiable pathway in the pathways that found in 
+perivous function by checking the points between start pointend point and the 
+piece goes thorugh the circle or not. It will return the result, which the move 
+is validable, the result is board string after moving, the move is invalidable,
+the result is None.
+This function has 8 inputs, board is a list contains the pieces location on the
+board; start and end are two turples show the position of start and end; 
+start_x, start_y, end_x, end_y are start and end coordinates, 
+length is the maxinum index in the board.
+'''
+def get_point(board, start, start_x, start_y, end, end_x, end_y, length):
+    
+    # paths is all the pathways that the piece at start point can go
+    paths = get_path(start_x, start_y, end_x, end_y, length)
+    
+    # captured is to check the piece can capture move or not
+    captured = False
+    
+    # result is the final result
+    result = None
+    
+    # oneway is one of the pathway in the all pathways from paths
+    for oneway in paths:
+        
+        # pass_circle is to record the piece rotated or not
+        pass_circle = False
+        
+        for i in range(len(oneway)):
+            
+            # Test the piece rotated or not
+            # if rotated, the pass_circled become True
+            if oneway[0][0] != start_x and oneway[0][1] != start_y:
+                pass_circle = True
+                
+            elif (oneway[i][0] != oneway[i-1][0] and 
+                  oneway[i][1] != oneway[i-1][1]):
+                pass_circle = True
+            
+            # Test when piece goes to end point, the piece rotated or not
+            if oneway[i] == end and pass_circle:
+                
+                # if piece rotated, do the capture move and replace the result
+                board[end_x][end_y] = board[start_x][start_y]
+                board[start_x][start_y] = "."
+                result = get_board_string(board)
+                
+                #record the piece does capture move successful
+                captured = True
+                
+                # break current loop
+                break
+            
+            # Test there is other piece on the pathway or not before reach end
+            # if has, check the point is not start point
+            if (board[oneway[i][0]][oneway[i][1]] != "." and 
+                    oneway[i][0] != start_x and oneway[i][1] != start_y):
+                
+                # if has other pieces at non-start point on the pathway, break
+                # change to next pathway
+                break
+        
+        # if the piece does capture move in nested loop, break current loop
+        if captured:
+            break
+            
+    return result
+ 
+    
+'''
+The last function will combine all previous functions. If all the 
+check-functions return Ture, return result; otherwise return None.
+This function has three input, board_string is the pieces location on the board
+shows in string type, start and end are the turples that shows start and end 
+points coordinates.
+'''
+def make_move_capture(board_string, start, end):
+    
+    # Set the varible name for start and end (global varible)
+    end_x = end[0]
+    end_y = end[1]
+    start_x = start[0]
+    start_y = start[1]
+    
+    # board is the list of board_str (global varible)
+    board = get_board_state(board_string)
+
+    # length is an int that the last number on a line or row. (global varible)
+    length = len(board[0]) - 1
+    
+    # Check the inputs are all valid
+    if not check_input(board_string, start, end, board, 
+                       start_x, start_y, end_x, end_y, length):
+        return None
+    
+    # Check the start and end are not at corner of the board
+    elif not corner_point(length, end_x, end_y, start_x, start_y):
+        
+        return None
+    
+    # Return result
+    else:
+        return get_point(board, start, start_x, start_y, 
+                         end, end_x, end_y, length)
