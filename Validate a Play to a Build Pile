@@ -1,0 +1,122 @@
+def get_value(card):
+    '''
+    This function will take one argument "card", which is string for the poker 
+    card. This function is used to get the value of the numbe part of the 
+    poker, because there are some illogic character in the number part of the 
+    "card", which are "A" means 1, "0" means 10, "J" means 11, "Q" means 12, 
+    "K" means 13. This function will check the "card" has these illogic 
+    character or not. If has, the function will return the real meaning of the 
+    illogic character in int type; if doesn't have, the function will return 
+    the number part in int type.
+    '''
+    # Check the illogic character
+    if card[0] == "A":
+        value = 1  # value is an int, means the number part of card
+        
+    elif card[0] == "0":
+        value = 10
+        
+    elif card[0] == "J":
+        value = 11
+        
+    elif card[0] == "Q":
+        value = 12
+        
+    elif card[0] == "K":
+        value = 13
+    
+    else:
+        value = int(card[0])
+    
+    # Return the number part in int type
+    return value
+
+
+def check_build_value(play_card, build_pile):
+    '''
+    This function will take two arguments, one is a str "play_card", the card 
+    that try to place onto build pile; the other one is a list "build_pile", 
+    the pile is the card will placed on. The function will check the colour of 
+    card and the top card of build pile are same or not and the number of card 
+    and the top card of build pile are adjacent or not. If both colour and 
+    number checked as right, return Ture, otherwise, return False.
+    '''
+    # build is the top card of the build pile
+    build = build_pile[-1]
+    
+    # colour_check is to check the card colour and build pile colour are same
+    colour_check = False  # initially False
+    
+    # number_check is to check the card number and build pile's are adjacent
+    number_check = False  # initially False
+    
+    # get the number part of card in int type as card_value by function
+    card_value = get_value(play_card)
+    
+    # get the number part of build pile in int type as build_value by function
+    build_value = get_value(build)
+    
+    # Check the number part are adjacent, the number_check become True if right
+    if abs(card_value - build_value) == 1:
+        number_check = True
+    
+    # Check the colour part are same, if right, the colour_check becomes True
+    if play_card[1] in "SC" and build[1] in "SC":
+        colour_check = True
+        
+    elif play_card[1] in "HD" and build[1] in "HD":
+        colour_check = True
+    
+    # check both colour and number are right, return True
+    if colour_check and number_check:
+        return True
+    
+    # Otherwise, return False
+    else:
+        return False
+    
+def comp10001bo_match_build(play_card, build_pile):    
+    '''
+    This function will take two arguments, one is a str "play_card", the card 
+    that try to place onto build pile; the other one is a list "build_pile", 
+    the pile that the card will placed on. This function will check the build 
+    pile is empty or it will be finished; and check number and colour by using 
+    previous function. If all checked right, the card will be placed legally, 
+    so return True; if checked the card placed illegally, the function will 
+    return False.
+    '''
+    
+    # Get top card from build pile
+    if build_pile != []:
+        
+        build = build_pile[-1]
+    
+    # check the build pile is empty or not
+    if build_pile == []:
+        
+        # the empty build pile only can be started by 2 or K
+        if play_card[0] == "2" or play_card[0] == "K":
+           
+            return True
+        
+        else:
+           
+            return False
+    
+    # check the build pile will be forced to complete by placing "A" or not
+    elif play_card[0] == "A":
+        
+        if ((play_card[1] in "SC" and build[1] in "SC") or 
+                (play_card[1] in "HD" and build[1] in "HD")):
+
+            return True
+    
+    else:
+        # using check_value function check colour and number
+        if check_build_value(play_card, build_pile):
+           
+            return True
+        
+        else:
+           
+            return False
