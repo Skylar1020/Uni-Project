@@ -1,0 +1,96 @@
+from reference import (get_board_state, make_move_capture, make_move_normal)
+
+'''
+This function will combine two previous function for capture move and normal 
+move. Move the pieces step by step and show the final board in string type.
+The way to make the difference between Capture move and Normal move will check
+the end intersection is "." or pieces.
+Because Capture move will replace the pieces from other side. 
+Therefore, if the end intersection is x or o, means this step will 
+replace pieces, it is Capture move. Otherwise, it is Normal move.
+This function will return the result after check all inputs are valid, if the
+move is invalid or inputs are invalid, return None.
+The function has two inputs, board_string is the pieces' position on the board 
+in string type, move_sequence is the steps that two players move the piece.
+'''
+def make_move_sequence(board_string, move_sequence):
+   
+    # Split string to list
+    board = get_board_state(board_string)
+
+    # Use for loop to go through all steps that inputed
+    for i in range(len(move_sequence)):
+        
+        # Test the input intersections are not empty
+        if move_sequence[i][0] == () or move_sequence[i][1] == ():
+            
+            return None
+        
+        # Test the input intersctions are not invalid
+        elif (len(move_sequence[i]) != 2 or len(move_sequence[i][0]) != 2 or
+              len(move_sequence[i][1]) != 2):
+            
+            return None
+        
+        # Test all the location type is int
+        elif ((type(move_sequence[i][0][0]) != int) or 
+              (type(move_sequence[i][0][1]) != int) or
+              (type(move_sequence[i][1][0]) != int) or
+              (type(move_sequence[i][1][1]) != int)):
+            
+            return None
+        
+        # Test the start and end intersection are not pieces from same side
+        elif (board[move_sequence[i][0][0]][move_sequence[i][0][1]] == 
+              board[move_sequence[i][1][0]][move_sequence[i][1][1]]):
+            
+            return None
+        
+        # Check the pieces moved is not the same side piece moved last step
+        elif (board[move_sequence[i][0][0]][move_sequence[i][0][1]] == 
+              board[move_sequence[i-1][0][0]][move_sequence[i-1][0][1]]):
+            
+            return None
+        
+        # Move the piece as Normal move, the end intersection is empty
+        elif board[move_sequence[i][1][0]][move_sequence[i][1][1]] == ".":
+
+            board_string = make_move_normal(board_string, move_sequence[i][0], 
+                                            move_sequence[i][1])
+            
+            # To check the normal move is valid or not
+            '''
+            If the function return None, it means the move is invaild. 
+            Therefore, the whole function will be invaild, loop will break 
+            and return None.
+            '''
+            if board_string is None:
+                
+                # result is the final result of the piece position shows in 
+                # string, if move invalid, result is None
+                result = None
+                
+            # if the function is vaild, the result will return the board string    
+            result = board_string
+        
+        # Move the piece as Capture move, the end intersection is not empty 
+        elif board[move_sequence[i][1][0]][move_sequence[i][1][1]] != ".":
+
+            board_string = make_move_capture(board_string, move_sequence[i][0], 
+                                             move_sequence[i][1])
+            
+            # if the Capture move is invaild, loop break and result is None
+            '''
+            If the function return None, it means the move is invaild. 
+            Therefore, the whole function will be invaild, loop will break 
+            and return None.
+            '''
+            if board_string is None:
+                
+                result = None
+            
+            # if the Capture move is vaild, the result will be board string
+            result = board_string
+    
+    # Finish whole loop and return the result
+    return result
