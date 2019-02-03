@@ -1,0 +1,599 @@
+from reference import comp10001bo_match_build, comp10001bo_match_discard
+# INSERT CONSTANTS AND FUNCTIONS USED ACROSS ALL QUESTIONS HERE
+
+# build pile play types
+INVALID_PLAY = 0
+VALID_NONFINAL_PLAY = 1
+VALID_FINAL_PLAY = 2
+NO_PLAY = 3
+
+def get_value(card):
+    '''
+    This function will take one argument "card", which is string for the poker 
+    card. This function is used to get the value of the numbe part of the 
+    poker, because there are some illogic character in the number part of the 
+    "card", which are "A" means 1, "0" means 10, "J" means 11, "Q" means 12, 
+    "K" means 13. This function will check the "card" has these illogic 
+    character or not. If has, the function will return the real meaning of the 
+    illogic character in int type; if doesn't have, the function will return 
+    the number part in int type.
+    '''
+    # Check the illogic character
+    if card[0] == "A":
+        value = 1  # value is an int, means the number part of card
+        
+    elif card[0] == "0":
+        value = 10
+        
+    elif card[0] == "J":
+        value = 11
+        
+    elif card[0] == "Q":
+        value = 12
+        
+    elif card[0] == "K":
+        value = 13
+    
+    else:
+        value = int(card[0])
+    
+    # Return the number part in int type
+    return value
+
+
+def check_build_value(play_card, build_pile):
+    '''
+    This function will take two arguments, one is a str "play_card", the card 
+    that try to place onto build pile; the other one is a list "build_pile", 
+    the pile is the card will placed on. The function will check the colour of 
+    card and the top card of build pile are same or not and the number of card 
+    and the top card of build pile are adjacent or not. If both colour and 
+    number checked as right, return Ture, otherwise, return False.
+    '''
+    # build is the top card of the build pile
+    build = build_pile[-1]
+    
+    # colour_check is to check the card colour and build pile colour are same
+    colour_check = False  # initially False
+    
+    # number_check is to check the card number and build pile's are adjacent
+    number_check = False  # initially False
+    
+    # get the number part of card in int type as card_value by function
+    card_value = get_value(play_card)
+    
+    # get the number part of build pile in int type as build_value by function
+    build_value = get_value(build)
+    
+    # Check the number part are adjacent, the number_check become True if right
+    if abs(card_value - build_value) == 1:
+        number_check = True
+    
+    # Check the colour part are same, if right, the colour_check becomes True
+    if play_card[1] in "SC" and build[1] in "SC":
+        colour_check = True
+        
+    elif play_card[1] in "HD" and build[1] in "HD":
+        colour_check = True
+    
+    # check both colour and number are right, return True
+    if colour_check and number_check:
+        return True
+    
+    # Otherwise, return False
+    else:
+        return False
+
+    
+def check_discard_value(play_card, discard_pile):
+    '''
+    This function will take two arguments, one is a str "play_card", the card 
+    that try to place onto discard pile; the other one is a list 
+    "discard_pile",the pile is the card will placed on. The function will check
+    the colour of card and the top card of discard pile are different or not 
+    and the number of card and the top card of build pile are adjacent or not. 
+    If both colour and numbe checkedas right, return Ture, otherwise, 
+    return False.
+    '''
+    k_to_2_value = 13 - 2
+    # discard is the top card of the discard pile
+    discard = discard_pile[-1]
+    
+    # colour_check is to check the card colour and discard colour are different
+    colour_check = False  # initially False
+    
+    # number_check is to check the card number and discard's are adjacent
+    number_check = False  # initially False
+    
+    # get the number part of card in int type as card_value by function
+    card_value = get_value(play_card)
+    
+    # get the number part of discard pile in int as discard_value by function
+    discard_value = get_value(discard)
+    
+    # Check the number part are adjacent, the number_check become True if right
+    if (abs(card_value - discard_value) == 1 or 
+            abs(card_value - discard_value) == k_to_2_value):
+        number_check = True
+    
+    # Check the colour part are different, the colour_check is True if right
+    if play_card[1] in "SC" and discard[1] in "HD":
+        colour_check = True
+        
+    elif play_card[1] in "HD" and discard[1] in "SC":
+        colour_check = True
+    
+    # check both colour and number are right, return True
+    if colour_check and number_check:
+        return True
+    
+    # Otherwise, return False
+    else:
+        return False
+    
+    
+def comp10001bo_match_discard(play_card, discard_pile, player_no, to_player_no,
+                              from_hand=True):
+    '''
+    This function will take five arguments, one is a str "play_card", the card 
+    that try to place onto discard pile; the second one is a list 
+    "discard_pile", the pile that the card will placed on, the third one is the
+    player number and the fourth one is the owner of discard pile, these to is 
+    to check is the person play on his or her own discard or not, the last one 
+    is from_hand, which is a bool, it is True if the play_card is from player's
+    hand. This function will check the play is valid or invalid and return a 
+    int, 0 is means the play is invalid; 1 is means the play is non-turn-ending
+    play; 2 is means the play is valid turn-ending play.
+    '''
+    # The discard pile cannot occur "A" in any sitution, if play card is A,
+    # return 0
+    if play_card[0] == "A":
+        return 0
+    
+    # Check the pile is empty or not
+    elif discard_pile == []:
+        
+        # Check the card to start pile is from pile owner's hand
+        if player_no == to_player_no and from_hand:
+            return 2
+        
+        # If not, is invalid play
+        else:
+            return 0
+    
+    # Check the colour and number by function, if correct, is valid play
+    elif check_discard_value(play_card, discard_pile):
+        return 1
+    
+    # Check the illegal play is from hand if not is invalid play
+    elif (check_discard_value(play_card, discard_pile) is False and 
+          from_hand is False):
+        return 0
+    
+    # Check it is illegal play and means turn-ending play
+    elif check_discard_value(play_card, discard_pile) is False:
+        return 2
+    
+    # All the other sitution is inlegal
+    else: 
+        return 0
+
+def comp10001bo_match_build(play_card, build_pile):    
+    '''
+    This function will take two arguments, one is a str "play_card", the card 
+    that try to place onto build pile; the other one is a list "build_pile", 
+    the pile that the card will placed on. This function will check the build 
+    pile is empty or it will be finished; and check number and colour by using 
+    previous function. If all checked right, the card will be placed legally, 
+    so return True; if checked the card placed illegally, the function will 
+    return False.
+    '''
+    # check the build pile is empty or not
+    if build_pile == []:
+        
+        # the empty build pile only can be started by 2 or K
+        if play_card[0] == "2" or play_card[0] == "K":
+            return True
+        
+        else:
+            return False
+    
+    # check the build pile will be forced to complete by placing "A" or not
+    elif play_card[0] == "A":
+        return True
+    
+    else:
+        # using check_value function check colour and number
+        if check_build_value(play_card, build_pile):
+            return True
+        
+        else:
+            return False
+        
+        
+def discard_pile_owner(discard_piles, pile):
+    '''
+    This function will take one argument, pile is the pile number of current 
+    discard pile in the loop. This function will return a int represent the 
+    '''
+    # to_player is the owner of the play card destination pile
+    if pile >= 0 and pile < (len(discard_piles) * 1):
+        to_player = 0
+    
+    elif pile >= (len(discard_piles) * 1) and pile < (len(discard_piles) * 2):
+        to_player = 1
+        
+    elif pile >= (len(discard_piles) * 2) and pile < (len(discard_piles) * 3):
+        to_player = 2
+        
+    elif pile >= (len(discard_piles) * 3) and pile < (len(discard_piles) * 4):
+        to_player = 3
+    
+    return to_player
+
+
+def check_input(play, player_no, hand, stockpiles, discard_piles, build_piles):
+    '''
+    This function has six inputs, all inputs are same as 
+    comp10001bo_is_valid_play's inputs. This function will check all inputs are
+    valid, especially check the length of inputs and int exceed the index or 
+    not. If the inputs are invalid, will return False; else return True
+    '''
+    
+    # Check build_piles length
+    if len(build_piles) != 4:
+        return False
+    
+    # Check stockpiles length
+    elif len(stockpiles) != 4:
+        return False
+    # Check discard_piles length
+    elif len(discard_piles) != 4:
+        return False
+    
+    # Check the hand cards are not exceed 5 pieces
+    elif len(hand) > 5:
+        return False
+    
+    # Sitution 1: The play card from hand
+    elif play[0] == 0:
+        
+        # Check the play card is exist in hand
+        if play[1] not in hand:
+            return False
+        
+        # Sitution 1.1: The play card goes to build piles
+        elif play[2][0] == 0:
+            
+            # Check the build pile no. is not exceed actual numbers of piles
+            if play[2][1] > 3:
+                return False
+            
+            # Check the build pile no. is not invalid
+            elif play[2][1] < 0:
+                return False
+    
+    # Sitution 2: The play card from discard
+    elif play[0] == 1:
+        
+        # Check plap card source and destination are not same
+        if play[1][1] == play[2][1]:
+            return False
+        
+        # Check the number ofpiles for each player in discard piles is four
+        for i in range(len(discard_piles)):
+            if len(discard_piles[i]) != 4:
+                return False
+            
+        # discard is a list contain all top cards from every discard piles    
+        discard = []    
+        for i in range(len(discard_piles)):
+            for j in range(4):
+
+                if discard_piles[i][j] != []:
+                    discard.append(discard_piles[i][j][-1])
+        
+        # Check the play card is a top card from one discard pile
+        if play[0] == 1 and play[1][0] not in discard:
+            return False
+    
+    # Sitution 2: play card from stockpile
+    elif play[0] == 2:
+        
+        # Check play card is the top card from player's stock pile 
+        if play[1] != stockpiles[player_no][0]:
+            return False
+    
+    # Check the player_no is from 0 to 3
+    elif player_no > 3 or player_no < 0:
+        return False
+    
+    else:
+        return True
+ 
+    
+def get_card(play, discard_piles):
+    '''
+    This function has two inputs, play is a tuple contain play card type, 
+    play card source and play card distination; discard_piles is all piles of 
+    discard. This function will get the play card and return a string represent
+    the play card.
+    '''
+    
+    # Sitution 1: Get the card from discard piles 
+    if play[0] == 1:
+        return play[1][0]
+    
+    # Sitution 2: When no possible play, return None
+    elif play[0] == 3:
+        return None
+    
+    # Sitution 3: Get the card from source when card from hand or stock piles
+    else:
+        return play[1]
+    
+    
+def get_pile(play, discard_piles):
+    '''
+    This function has two inputs, play is a tuple contain play card type, 
+    play card source and play card distination; discard_piles is all piles of 
+    discard. This function will get the discard pile that is the destination of 
+    play card. And it will return a list to represent the pile
+    '''
+    return discard_piles[play[2][1][0]][play[2][1][1]]
+
+
+def check_hand(play):
+    '''
+    This function has one input, play is a tuple contain play card type, 
+    play card source and play card distination. This function will check the 
+    play card is from hand or not and return a bool: Ture if it is from hand;
+    False if it is not from hand.
+    '''
+    if play[0] == 0:
+        return True
+    
+    else:
+        return False
+
+    
+def get_all_play_cards(player_no, hand, stockpiles, discard_piles):
+    '''
+    This function has four inputs. hand is a list represent all hand card from 
+    the player; stockpiles is a 4-tuple describe the all stock piles, contain 
+    the top cards and how many card in the pile; discard_piles is all piles of 
+    discard. This function will get all card that can be used. It will return 
+    a list contain all cards from hand, the top card from player's stock pile 
+    and top card from each discard piles.
+    '''
+    
+    # all_card is a list contain hand card, top stock card and top discards
+    all_card = []
+    
+    # card is the card in hand
+    for card in hand:
+        
+        # Get the cards from hand
+        all_card.append(card)
+    
+    # Get the card from stock pile
+    all_card.append(stockpiles[player_no][0])
+
+    # players is the no. of each discard piles
+    for players in range(len(discard_piles)):
+        
+        # If the discard pile is empty, pass
+        if discard_piles[players][-1] != []:
+            
+            # Get top card from discard piles
+            all_card.append(discard_piles[players][-1])
+   
+    return all_card
+
+
+def get_play_card(player_no, stockpiles, discard_piles):
+    '''
+    This function has three inputs,  same as previous function.
+    This function will get all card that can be used except hand.
+    It will return a list contain all cards from hand, the top card from 
+    player's stock pile and top card from each discard piles.
+    '''
+    
+    # card is a list will conatin all cards can be played except hand
+    card = []
+    
+    # stock_card is a list will get the top card from player's stock pile
+    stock_card = []
+    
+    # Change the stock card type to list like ["xx"]
+    stock_card.append(stockpiles[player_no][0])
+    
+    card.append(stock_card)
+    
+    # players is the no. of each discard piles
+    for players in range(len(discard_piles)):
+        
+        # Only get non-empty pile
+        if discard_piles[players][-1] != []:
+            
+            card.append(discard_piles[players][-1])
+   
+    return card
+                  
+    
+def get_all_discard_piles(discard_piles):
+    '''
+    This function has an input, discard_piles is all piles of discard. 
+    This function will return a list to represent all the piles from discard.
+    '''
+    
+    # all_pile will contain all piles from discard pile in a list
+    all_pile = []
+    
+    # player is the no. of each discard piles
+    for player in range(len(discard_piles)):
+        
+        # pile is the pile number of the piles from a player's discard pile
+        for pile in range(len(discard_piles[player])):
+            
+            # discardpile is a list 
+            discardpile = []
+            
+            # Get the top card from non_empty pile
+            if discard_piles[player][pile] != []:
+                
+                discardpile.append(discard_piles[player][pile][-1])
+                
+                # Add top card to total pile list
+                all_pile.append(discardpile)
+            
+            # Get empty pile 
+            else:
+                all_pile.append([])
+    
+    return all_pile
+                
+    
+def check_possible(play, player_no, hand, stockpiles, discard_piles, 
+                   build_piles):
+    '''
+    This function has six inputs, all are same as comp10001bo_is_valid_play's.
+    This function will check the play is able to play or not. If checked there 
+    is a possible play, return False, if there no possible play, return True
+    '''
+    
+    # all_play_cards is all the card that can be play
+    all_play_cards = get_all_play_cards(player_no, 
+                                        hand, stockpiles, discard_piles)
+    
+    # play_cards is all the card that can be play except hand card
+    play_cards = get_play_card(player_no, stockpiles, discard_piles)
+    
+    # play_piles is all the discard pile that can be destination
+    play_piles = get_all_discard_piles(discard_piles)
+    
+    # build_list is list to record all the possible play to build piles
+    build_list = []
+    
+    # card is the no. of card in all_play_cards
+    for card in range(len(all_play_cards)):
+        
+        # pile is the pile in build_piles
+        for pile in build_piles:
+            
+            # check there is possible play to build piles or not
+            if comp10001bo_match_build(all_play_cards[card], pile):
+                
+                # if have possible play, the build_list adds a "Possible"
+                build_list.append("Possible")
+    
+    # If the list not empty, means there is possible play, then return False
+    if build_list != []:
+        return False
+     
+    # discard_hand_list is list to record all the possible play to discard pile 
+    discard_hand_list = []  # only play with hand cards
+    
+    # card is the the no. of hand cards
+    for card in range(len(hand)):
+        
+        # pile is the no. of discard piles
+        for pile in range(len(play_piles)):
+            
+            # Get the owner of discard pile 
+            to_player = discard_pile_owner(discard_piles, pile)
+            
+            # Check there is valid play to discard pile from hand or not
+            if comp10001bo_match_discard(hand[card], play_piles[pile], 
+                                         player_no, to_player, True) != 0:
+                
+                # Add "Possible" if valid play
+                discard_hand_list.append("Possible")
+    
+    # Return False if there is valid play
+    if discard_hand_list != []:
+        
+        return False
+    
+    # discard_hand_list is list to record all the possible play to discard pile 
+    discard_nonhand_list = []  # play card not contain hand
+    
+    # As same as previous loop
+    for card in range(len(play_cards)): 
+        for pile in range(len(play_piles)):
+        
+            # Get the owner of discard pile 
+            to_player = discard_pile_owner(discard_piles, pile)
+
+            if comp10001bo_match_discard(play_cards[card][0], play_piles[pile],
+                                         player_no, to_player, False) != 0:
+                
+                # Add "Possible" if valid play
+                discard_nonhand_list.append("Possible")
+    
+    # Return False if there is valid play
+    if discard_nonhand_list != []:
+       
+        return False
+    
+    # If there is no volid play, return True
+    else:
+        
+        return True
+               
+
+def comp10001bo_is_valid_play(play, player_no, hand, stockpiles, discard_piles,
+                              build_piles):
+    '''
+    This function has six inputs, This function has five inputs. play is a 
+    tuple contain play card type, play card source and play card distination; 
+    player_no is a int represent the player number; hand is a list represent 
+    all hand card from the player; stockpiles is a 4-tuple describe the all 
+    stock piles, contain the top cards and how many card in the pile; 
+    discard_piles is all piles of discard; build_piles is a tuple contain four 
+    build piles 
+    '''
+    
+    # Check the input, if invalid, return 0
+    if check_input(play, player_no, hand, stockpiles, discard_piles, 
+                   build_piles) is False:
+        return 0
+    
+    # Sitution 1: play card to build pile
+    elif play[2][0] == 0:
+        
+        # result is the output of comp10001bo_match_build, a bool.
+        result = comp10001bo_match_build(get_card(play, discard_piles), 
+                                         build_piles[play[2][1]])
+        
+        # If play valid, return 1
+        if result:
+            return 1
+        
+        # If play invalid, return 2
+        if result is False:
+            return 0
+    
+    # Sitution 2: play card to discard pile
+    elif play[2][0] == 1:
+        
+        # result is a int that is the output of comp10001bo_match_discard
+        result = comp10001bo_match_discard(get_card(play, discard_piles), 
+                                           get_pile(play, discard_piles), 
+                                           player_no, play[2][1][0], 
+                                           check_hand(play))
+        return result
+    
+    # Sitution 3: No play is possible
+    elif play[0] == 3:
+        
+        # Use check_possible function to check
+        if check_possible(play, player_no, hand, stockpiles, discard_piles, 
+                          build_piles):
+            
+            # If no possible play, return 3
+            return 3
+        
+        # If has possible play, return 0
+        else:
+            return 0
