@@ -1,0 +1,67 @@
+from reference import get_board_state, get_board_string
+import sys
+'''
+This function will check the piece can move from start to end as normal move or
+not. It will split two sitution, horizontal or vertical move and sideline move.
+If move horizontal or vertical, one of their x or y coordinates will be equal 
+and the other one will differ 1 unit.
+If move sideline, both x and y coordinates are differ 1 unit.
+If the start point and end point meet the above conditions, and all input are 
+valid, it's a valid normal move and return result in string type; otherwise 
+return None.
+This function has three inputs, board_string shows all pieces' location on the
+board in string type, start and end are two turple contain coordinates.
+'''
+def make_move_normal(board_string, start, end):
+    
+    # Set varible names for piont location that for easy to read and understand
+    end_x = end[0]
+    end_y = end[1]
+    start_x = start[0] 
+    start_y = start[1]
+
+    
+    # Split string to list
+    board = get_board_state(board_string)
+
+
+    # Check the board_string is square number, otherwise return None
+    for i in range(sys.maxsize**10):
+        if len(board_string) != i*i:
+            break
+            result = print(None)
+            
+    # Check a piece on start and no piece on end, otherwise return None
+    if board[end_x][end_y] != "." or board[start_x][start_y] == ".":
+        result = None
+        
+    # Check the start position is not end position, otherwise return None
+    elif start == end:
+        result = None
+        
+    else:
+        
+        # The piece move horizontal or vertical
+        if start_x == end_x or start_y == end_y:
+            
+            if abs(start_x - end_x) + abs(start_y - end_y) <= 1:
+                board[end_x][end_y] = board[start_x][start_y]
+                board[start_x][start_y] = "."
+            
+                result = get_board_string(board)
+                
+            else:
+                result = None
+                
+        # The piece move sideline
+        elif abs(start_x - end_x) == abs(start_y - end_y) == 1:
+            
+            board[end_x][end_y] = board[start_x][start_y]
+            board[start_x][start_y] = "."
+        
+            result = get_board_string(board)
+            
+        else:
+            result = None
+        
+    return result
